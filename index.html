@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#102642"><meta name="description" content="Coin Catch - एक सरल कॉइन पकड़ने वाला आर्केड गेम">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png">
+<title>Coin Catch</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,Arial;background:#0b1528;color:#fff;min-height:100vh;display:flex;justify-content:center}
+main{width:min(100%,520px);padding:18px}.card{background:#152944;border:1px solid #2a4568;border-radius:20px;padding:16px;margin:12px 0}
+h1{margin:0;font-size:2rem}.sub{color:#aac5e6}.stats{display:flex;gap:10px}.stats>div{flex:1;background:#223e61;border-radius:14px;padding:12px}
+#arena{height:420px;position:relative;overflow:hidden;border-radius:18px;background:linear-gradient(#142c4c,#0d1d34);border:1px solid #45658c;touch-action:manipulation}
+.coin{position:absolute;border:0;border-radius:50%;width:56px;height:56px;background:radial-gradient(circle at 30% 25%,#fff8bd,#ffd84b 45%,#c98a12);font-size:30px;box-shadow:0 4px 12px #0006;display:grid;place-items:center;cursor:pointer}
+button{border:0;border-radius:12px;background:#4c95e8;color:white;padding:12px 16px;font-weight:700;font-size:1rem;cursor:pointer}
+button.secondary{background:#315275}#msg{min-height:24px;color:#d7e7fb}
+footer{font-size:.8rem;color:#9fb5d1;padding:10px}
+</style></head>
+<body><main>
+<div class="card"><h1>🪙 Coin Catch</h1><p class="sub">30 सेकंड में कॉइन पकड़ो और अपना स्कोर बढ़ाओ!</p>
+<div class="stats"><div>स्कोर<br><strong id="score">0</strong></div><div>समय<br><strong id="time">30</strong> सेकंड</div><div>हाई स्कोर<br><strong id="high">0</strong></div></div></div>
+<div id="arena" aria-label="Coin Catch गेम मैदान"></div>
+<div class="card"><button id="start">गेम शुरू करें</button> <button id="reset" class="secondary">रीसेट</button><p id="msg">शुरू दबाएँ, फिर कॉइन पर टैप करें।</p></div>
+<footer>Coin Catch मनोरंजन के लिए है। कॉइन केवल गेम पॉइंट हैं; उनका वास्तविक पैसे का मूल्य या भुगतान नहीं है।</footer>
+</main>
+<script>
+const arena=document.getElementById('arena'),scoreEl=document.getElementById('score'),timeEl=document.getElementById('time'),highEl=document.getElementById('high'),msg=document.getElementById('msg');
+let score=0,time=30,timer=null,spawn=null,active=false;
+highEl.textContent=localStorage.getItem('ccHigh')||0;
+function clearGame(){clearInterval(timer);clearInterval(spawn);arena.innerHTML='';active=false}
+function spawnCoin(){if(!active)return;const c=document.createElement('button');c.className='coin';c.textContent='🪙';c.setAttribute('aria-label','कॉइन पकड़ें');
+const maxX=Math.max(0,arena.clientWidth-56),maxY=Math.max(0,arena.clientHeight-56);
+c.style.left=Math.random()*maxX+'px';c.style.top=Math.random()*maxY+'px';
+c.onclick=()=>{if(!active)return;score++;scoreEl.textContent=score;c.remove();};arena.appendChild(c);setTimeout(()=>c.remove(),1100)}
+function end(){clearGame();msg.textContent=`समय पूरा! आपका स्कोर: ${score}`;const h=Number(localStorage.getItem('ccHigh')||0);if(score>h){localStorage.setItem('ccHigh',score);highEl.textContent=score;msg.textContent+=' — नया हाई स्कोर!';}}
+document.getElementById('start').onclick=()=>{clearGame();score=0;time=30;scoreEl.textContent=0;timeEl.textContent=30;active=true;msg.textContent='कॉइन पर जल्दी टैप करें!';spawnCoin();spawn=setInterval(spawnCoin,650);timer=setInterval(()=>{time--;timeEl.textContent=time;if(time<=0)end()},1000)};
+document.getElementById('reset').onclick=()=>{clearGame();score=0;time=30;scoreEl.textContent=0;timeEl.textContent=30;msg.textContent='शुरू दबाएँ, फिर कॉइन पर टैप करें।'};
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script></body></html>
